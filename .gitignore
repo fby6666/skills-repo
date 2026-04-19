@@ -1,0 +1,9 @@
+﻿# Python cache
+__pycache__/
+*.pyc
+
+# Generated outputs
+scripts/wiki_index.json
+scripts/arxiv_daily.json
+scripts/lint_report.json
+scripts/*.log
