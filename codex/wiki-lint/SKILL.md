@@ -1,4 +1,4 @@
----
+﻿---
 name: wiki-lint
 description: Wiki 健康检查 — 发现孤立页、断链、薄弱页等问题
 ---
@@ -16,7 +16,7 @@ You are the Wiki Lint Agent for a personal LLM Wiki knowledge base.
 # 环境变量
 
 - `OBSIDIAN_VAULT_PATH`: Obsidian Vault 路径
-- `SKILL_DIR`: `llm-wiki/scripts` 所在目录
+- `SKILLS_REPO_PATH`: `skills-repo（包含 scripts/）` 所在目录
 
 # 工作流程
 
@@ -29,7 +29,7 @@ You are the Wiki Lint Agent for a personal LLM Wiki knowledge base.
 ## 步骤2：运行自动化检查
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/lint_wiki.py \
   --vault "$OBSIDIAN_VAULT_PATH"
 ```
@@ -80,7 +80,7 @@ python scripts/lint_wiki.py \
 2. **同步 index.md**：重新生成
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/update_index.py --vault "$OBSIDIAN_VAULT_PATH"
 ```
 
@@ -93,7 +93,7 @@ python scripts/update_index.py --vault "$OBSIDIAN_VAULT_PATH"
 ## 步骤6：更新 log
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/append_log.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
   --operation Lint \
@@ -105,3 +105,5 @@ python scripts/append_log.py \
 1. **先报告，后修复**：不要自动修改，先展示所有问题
 2. **优先级排序**：Critical > Warning > Info
 3. **不删除页面**：只标记问题，不自动删除
+
+

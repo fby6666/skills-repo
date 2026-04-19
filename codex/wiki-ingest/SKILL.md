@@ -1,4 +1,4 @@
----
+﻿---
 name: wiki-ingest
 description: 将新来源（论文/文章/想法等）摄入到 LLM Wiki 知识库中
 allowed-tools: Read, Write, Bash, WebFetch, Glob, Grep
@@ -23,7 +23,7 @@ You are the Wiki Ingest Agent for a personal LLM Wiki knowledge base.
 # 环境变量
 
 - `OBSIDIAN_VAULT_PATH`: Obsidian Vault 路径
-- `SKILL_DIR`: 脚本目录
+- `SKILLS_REPO_PATH`: 脚本目录
 
 # 工作流程
 
@@ -55,7 +55,7 @@ Read: $OBSIDIAN_VAULT_PATH/_schema/WIKI.md
 mkdir -p "$OBSIDIAN_VAULT_PATH/_sources/papers/{ARXIV_ID}/images"
 
 # 提取图片
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/extract_images.py {ARXIV_ID} \
   "$OBSIDIAN_VAULT_PATH/_sources/papers/{ARXIV_ID}/images" \
   "$OBSIDIAN_VAULT_PATH/_sources/papers/{ARXIV_ID}/images/index.md"
@@ -64,14 +64,14 @@ python scripts/extract_images.py {ARXIV_ID} \
 ### 网页文章类型
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/fetch_article.py "{URL}" --vault "$OBSIDIAN_VAULT_PATH"
 ```
 
 ## 步骤3：扫描现有 Wiki
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/scan_wiki.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
   --output wiki_index.json
@@ -98,7 +98,7 @@ Wiki Ingest Agent 分析来源内容，决定：
 对于论文类型，使用脚本生成骨架：
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/generate_page.py \
   --type entity/paper \
   --title "{PAPER_TITLE}" \
@@ -138,7 +138,7 @@ python scripts/generate_page.py \
 - **如果概念页不存在**：创建新的概念页
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/generate_page.py \
   --type concept \
   --title "{CONCEPT_NAME}" \
@@ -153,7 +153,7 @@ python scripts/generate_page.py \
 如果发现两个密切相关的实体：
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/generate_page.py \
   --type comparison \
   --title "{ENTITY_A} vs {ENTITY_B}: {TOPIC}" \
@@ -168,7 +168,7 @@ python scripts/generate_page.py \
 ## 步骤6：自动关键词链接
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 # 先重新扫描索引
 python scripts/scan_wiki.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
@@ -184,7 +184,7 @@ python scripts/link_keywords.py \
 ## 步骤7：更新 index.md 和 log.md
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 # 更新 index
 python scripts/update_index.py --vault "$OBSIDIAN_VAULT_PATH"
 
@@ -215,4 +215,6 @@ python scripts/append_log.py \
 8. **不覆盖用户内容**：`%% user %%` 标记的区域不修改
 9. **保持 frontmatter 完整**：所有字符串值用双引号
 10. **更新 updated 字段**：修改页面时更新 frontmatter 中的 `updated` 日期
+
+
 

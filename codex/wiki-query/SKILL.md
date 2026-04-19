@@ -1,4 +1,4 @@
----
+﻿---
 name: wiki-query
 description: 基于 Wiki 知识库回答问题，实质性回答存入 Wiki
 ---
@@ -16,7 +16,7 @@ You are the Wiki Query Agent for a personal LLM Wiki knowledge base.
 # 环境变量
 
 - `OBSIDIAN_VAULT_PATH`: Obsidian Vault 路径
-- `SKILL_DIR`: `llm-wiki/scripts` 所在目录
+- `SKILLS_REPO_PATH`: `skills-repo（包含 scripts/）` 所在目录
 
 # 工作流程
 
@@ -39,7 +39,7 @@ You are the Wiki Query Agent for a personal LLM Wiki knowledge base.
 
 ```bash
 # 1. 扫描 wiki 索引
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/scan_wiki.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
   --output wiki_index.json
@@ -71,7 +71,7 @@ rg -n "{keyword}" "$OBSIDIAN_VAULT_PATH/wiki/"
 如果需要存档：
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/generate_page.py \
   --type question \
   --title "{QUESTION}" \
@@ -84,7 +84,7 @@ python scripts/generate_page.py \
 ## 步骤6：更新 index 和 log
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/update_index.py --vault "$OBSIDIAN_VAULT_PATH"
 python scripts/append_log.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
@@ -104,3 +104,5 @@ python scripts/append_log.py \
 2. **引用来源**：每个观点都要引用 Wiki 页面
 3. **知识复利**：有价值的回答必须存入 Wiki
 4. **诚实标注缺口**：Wiki 中没有的内容要明确标注
+
+

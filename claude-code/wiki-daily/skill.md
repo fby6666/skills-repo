@@ -1,4 +1,4 @@
----
+﻿---
 name: wiki-daily
 description: 每日论文推荐 — 搜索论文并自动摄入 Top 3 到 Wiki
 allowed-tools: Read, Write, Bash, WebFetch, Glob, Grep
@@ -17,7 +17,7 @@ You are the Wiki Daily Agent for a personal LLM Wiki knowledge base.
 # 环境变量
 
 - `OBSIDIAN_VAULT_PATH`: Obsidian Vault 路径
-- `SKILL_DIR`: 脚本目录
+- `SKILLS_REPO_PATH`: 脚本目录
 
 # 工作流程
 
@@ -31,7 +31,7 @@ Read: $OBSIDIAN_VAULT_PATH/_schema/config.yaml
 ## 步骤2：搜索论文
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/search_arxiv.py \
   --config "$OBSIDIAN_VAULT_PATH/_schema/config.yaml" \
   --output arxiv_filtered.json \
@@ -44,7 +44,7 @@ python scripts/search_arxiv.py \
 ## 步骤3：读取筛选结果
 
 ```bash
-cat "$SKILL_DIR/arxiv_filtered.json"
+cat "$SKILLS_REPO_PATH/arxiv_filtered.json"
 ```
 
 获取 Top 10 论文，每篇包含：ID、标题、作者、摘要、评分、匹配领域。
@@ -52,7 +52,7 @@ cat "$SKILL_DIR/arxiv_filtered.json"
 ## 步骤4：扫描现有 Wiki
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/scan_wiki.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
   --output wiki_index.json
@@ -114,7 +114,7 @@ created: "{YYYY-MM-DD}"
 
 1. **提取图片**：
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 mkdir -p "$OBSIDIAN_VAULT_PATH/_sources/papers/{ARXIV_ID}/images"
 python scripts/extract_images.py {ARXIV_ID} \
   "$OBSIDIAN_VAULT_PATH/_sources/papers/{ARXIV_ID}/images" \
@@ -141,7 +141,7 @@ python scripts/extract_images.py {ARXIV_ID} \
 ## 步骤7：关键词链接
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/scan_wiki.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
   --output wiki_index.json
@@ -155,7 +155,7 @@ python scripts/link_keywords.py \
 ## 步骤8：更新 index 和 log
 
 ```bash
-cd "$SKILL_DIR"
+cd "$SKILLS_REPO_PATH"
 python scripts/update_index.py --vault "$OBSIDIAN_VAULT_PATH"
 python scripts/append_log.py \
   --vault "$OBSIDIAN_VAULT_PATH" \
@@ -170,3 +170,5 @@ python scripts/append_log.py \
 3. **其他论文**：只在推荐页中列出基本信息
 4. **图文并茂**：Top 3 论文必须插入图片
 5. **知识复利**：每次 daily 都会增加 Wiki 的深度和广度
+
+
