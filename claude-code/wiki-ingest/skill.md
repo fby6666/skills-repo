@@ -68,6 +68,25 @@ cd "$SKILLS_REPO_PATH"
 python scripts/fetch_article.py "{URL}" --vault "$OBSIDIAN_VAULT_PATH"
 ```
 
+脚本会自动：
+- 下载文章中的图片到 `_sources/articles/{title}/images/`
+- 在 markdown 中用 Obsidian embed 格式引用图片：`![[_sources/articles/{title}/images/fig1.jpg|800]]`
+- 对小红书等图文类网页，从嵌入的 JSON 数据中提取高清图片 URL
+- 生成 `images/index.md` 图片索引
+
+**输出目录结构**：
+```
+_sources/articles/{title}/
+  {title}.md          # 文章 markdown（含图片 embed）
+  images/
+    fig1.jpg
+    fig2.jpg
+    ...
+    index.md          # 图片索引
+```
+
+**分析图文类文章时**：对于图片承载主要内容的文章（如小红书图文笔记、技术博客幻灯片），Claude 必须**读取 `images/` 目录中的图片**来理解文章完整内容，而不是仅凭文字描述推测。这能避免 wiki 页面出现幻觉。
+
 ## 步骤3：扫描现有 Wiki
 
 ```bash
@@ -83,7 +102,9 @@ python scripts/scan_wiki.py \
 
 Claude 分析来源内容，决定：
 
-1. **实体页**：创建新的实体页（论文/书/工具）
+1. **实体页**：创建新的实体页（论文/文章/书/工具）
+   - **论文** → `entity/paper`
+   - **网页文章** → `entity/article`（类似 paper 实体页，包含一句话总结、内容概要、关键论点、涉及概念等）
 2. **概念页**：该来源涉及哪些概念？
    - 哪些概念页已存在？→ 更新
    - 哪些概念页需要新建？→ 创建
@@ -95,7 +116,9 @@ Claude 分析来源内容，决定：
 
 ### 5.1 创建实体页
 
-对于论文类型，使用脚本生成骨架：
+#### 论文类型
+
+使用脚本生成骨架：
 
 ```bash
 cd "$SKILLS_REPO_PATH"
@@ -118,6 +141,31 @@ python scripts/generate_page.py \
 - 评分
 
 **图片引用**：使用 `![[_sources/papers/{ID}/images/fig1.png|800]]` 格式。
+
+#### 网页文章类型
+
+使用脚本生成骨架：
+
+```bash
+cd "$SKILLS_REPO_PATH"
+python scripts/generate_page.py \
+  --type entity/article \
+  --title "{ARTICLE_TITLE}" \
+  --url "{URL}" \
+  --author "{AUTHOR}" \
+  --platform "{PLATFORM}" \
+  --domain "{DOMAIN}" \
+  --vault "$OBSIDIAN_VAULT_PATH"
+```
+
+然后 Claude 读取原始文章（特别是 `_sources/articles/{title}/images/` 中的图片）后填充：
+- 一句话总结
+- 内容概要（文章的完整结构和核心论述）
+- 关键论点与数据（包含具体公式、实验数据、关键图表引用）
+- 涉及的概念与论文（[[wikilinks]] 串联）
+- 评价
+
+**图片引用**：使用 `![[_sources/articles/{title}/images/fig1.jpg|800]]` 格式。
 
 ### 5.2 创建/更新概念页
 
@@ -197,7 +245,7 @@ python scripts/append_log.py \
 1. **读取 Schema 优先**：每次操作前必须读取 `_schema/WIKI.md`
 2. **检查现有页面**：创建前先搜索是否已存在
 3. **10-15 页面**：每次摄入目标触达 10-15 个页面
-4. **图文并茂**：论文实体页必须引用提取的图片
+4. **图文并茂**：论文实体页引用 `![[_sources/papers/{ID}/images/fig1.png|800]]`；网页文章的 wiki 页面可引用 `![[_sources/articles/{title}/images/fig1.jpg|800]]`。图文类文章必须先读取图片再撰写 wiki 内容
 5. **混合语言**：正文中文，技术术语保留英文
 6. **wikilinks**：所有提到的概念和实体都要使用 `[[wikilink]]`
 7. **不覆盖用户内容**：`%% user %%` 标记的区域不修改

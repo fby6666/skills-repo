@@ -184,6 +184,71 @@ updated: "{today}"
     return content, safe_name
 
 
+def generate_entity_article(
+    title: str,
+    url: str,
+    author: str,
+    platform: str,
+    domain: str,
+    source_path: str,
+    vault_path: str,
+) -> tuple[str, str]:
+    """生成网页文章实体页"""
+    today = datetime.now().strftime('%Y-%m-%d')
+    safe_name = sanitize_filename(title)
+
+    content = f'''---
+type: "entity/article"
+title: "{title}"
+aliases: []
+author: "{author}"
+platform: "{platform}"
+url: "{url}"
+date: "{today}"
+domains:
+  - "{domain}"
+tags:
+  - "文章笔记"
+source_path: "_sources/articles/{safe_name}"
+created: "{today}"
+updated: "{today}"
+---
+
+# {title}
+
+## 一句话总结
+
+{{{{待填写}}}}
+
+## 来源信息
+
+- **作者**: {author}
+- **平台**: {platform}
+- **链接**: [{platform}]({url})
+- **抓取日期**: {today}
+
+## 内容概要
+
+{{{{待填写}}}}
+
+## 关键论点与数据
+
+{{{{待填写}}}}
+
+## 涉及的概念与论文
+
+{{{{待填写}}}}
+
+## 我的评价
+
+> [!tip] 核心启发
+> {{{{待填写}}}}
+
+%% user: 个人阅读笔记 %%
+'''
+    return content, safe_name
+
+
 def generate_concept(
     title: str,
     domains: list,
@@ -244,14 +309,19 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description='Generate wiki page from template')
     parser.add_argument('--type', type=str, required=True,
-                        choices=['entity/paper', 'entity/book', 'entity/tool',
-                                 'concept', 'comparison', 'domain-overview', 'question'],
+                        choices=['entity/paper', 'entity/article', 'entity/book',
+                                 'entity/tool', 'concept', 'comparison',
+                                 'domain-overview', 'question'],
                         help='Page type')
     parser.add_argument('--title', type=str, required=True, help='Page title')
     parser.add_argument('--paper-id', type=str, default='', help='arXiv paper ID')
     parser.add_argument('--authors', type=str, default='', help='Authors')
     parser.add_argument('--domain', type=str, default='', help='Primary domain')
     parser.add_argument('--domains', type=str, default='', help='Comma-separated domains')
+    parser.add_argument('--url', type=str, default='', help='Article URL')
+    parser.add_argument('--author', type=str, default='', help='Article author (for entity/article)')
+    parser.add_argument('--platform', type=str, default='', help='Article platform (for entity/article)')
+    parser.add_argument('--source-path', type=str, default='', help='Source path in _sources/')
     parser.add_argument('--vault', type=str, default=None, help='Obsidian vault path')
     parser.add_argument('--output', type=str, default=None,
                         help='Output file path (auto-determined if not set)')
@@ -271,6 +341,14 @@ def main() -> int:
         )
         output_path = args.output or os.path.join(
             wiki_dir, 'entities', 'papers', f'{safe_name}.md'
+        )
+    elif args.type == 'entity/article':
+        content, safe_name = generate_entity_article(
+            args.title, args.url, args.author, args.platform,
+            args.domain, args.source_path, vault_root,
+        )
+        output_path = args.output or os.path.join(
+            wiki_dir, 'entities', 'articles', f'{safe_name}.md'
         )
     elif args.type == 'concept':
         content, kebab_name = generate_concept(args.title, domains, vault_root)
