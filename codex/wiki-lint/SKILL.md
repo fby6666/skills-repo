@@ -1,4 +1,4 @@
-﻿---
+---
 name: wiki-lint
 description: Wiki 健康检查 — 发现孤立页、断链、薄弱页等问题
 ---
@@ -49,6 +49,7 @@ python scripts/lint_wiki.py \
 3. **index.md 同步**：index 内容是否与实际 Wiki 页面匹配
 4. **日期更新**：是否有页面 frontmatter 的 updated 日期已过期
 5. **链接质量**：是否有实体页缺少概念链接，或概念页缺少实体链接
+6. **frontmatter 污染**：frontmatter 中是否出现 `[[wikilink]]`（例如被关键词自动链接脚本误改）
 
 ## 步骤4：生成报告
 

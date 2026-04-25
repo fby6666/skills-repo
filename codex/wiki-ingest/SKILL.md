@@ -1,7 +1,6 @@
-﻿---
+---
 name: wiki-ingest
 description: 将新来源（论文/文章/想法等）摄入到 LLM Wiki 知识库中
-allowed-tools: Read, Write, Bash, WebFetch, Glob, Grep
 ---
 
 You are the Wiki Ingest Agent for a personal LLM Wiki knowledge base.
@@ -23,7 +22,7 @@ You are the Wiki Ingest Agent for a personal LLM Wiki knowledge base.
 # 环境变量
 
 - `OBSIDIAN_VAULT_PATH`: Obsidian Vault 路径
-- `SKILLS_REPO_PATH`: 脚本目录
+- `SKILLS_REPO_PATH`: `skills-repo（包含 scripts/）` 所在目录
 
 # 工作流程
 
@@ -31,9 +30,9 @@ You are the Wiki Ingest Agent for a personal LLM Wiki knowledge base.
 
 **必须首先执行**：读取 `_schema/WIKI.md` 了解所有规则和约定。
 
-```
-Read: $OBSIDIAN_VAULT_PATH/_schema/WIKI.md
-```
+读取文件：
+`$OBSIDIAN_VAULT_PATH/_schema/WIKI.md`
+如果该路径不存在，先定位你的 Vault 路径，再更新 `OBSIDIAN_VAULT_PATH`。
 
 ## 步骤1：识别来源类型
 
@@ -68,6 +67,25 @@ cd "$SKILLS_REPO_PATH"
 python scripts/fetch_article.py "{URL}" --vault "$OBSIDIAN_VAULT_PATH"
 ```
 
+脚本会自动：
+- 下载文章中的图片到 `_sources/articles/{title}/images/`
+- 在 markdown 中用 Obsidian embed 格式引用图片：`![[_sources/articles/{title}/images/fig1.jpg|800]]`
+- 对小红书等图文类网页，从嵌入的 JSON 数据中提取高清图片 URL
+- 生成 `images/index.md` 图片索引
+
+**输出目录结构**：
+```
+_sources/articles/{title}/
+  {title}.md          # 文章 markdown（含图片 embed）
+  images/
+    fig1.jpg
+    fig2.jpg
+    ...
+    index.md          # 图片索引
+```
+
+**分析图文类文章时**：对于图片承载主要内容的文章（如小红书图文笔记、技术博客幻灯片），你必须先读取 `images/` 目录中的图片来理解文章完整内容，而不是仅凭文字描述推测。这能避免 wiki 页面出现幻觉。
+
 ## 步骤3：扫描现有 Wiki
 
 ```bash
@@ -81,9 +99,11 @@ python scripts/scan_wiki.py \
 
 ## 步骤4：分析来源，确定需要创建/更新的页面
 
-Wiki Ingest Agent 分析来源内容，决定：
+你分析来源内容，决定：
 
-1. **实体页**：创建新的实体页（论文/书/工具）
+1. **实体页**：创建新的实体页（论文/文章/书/工具）
+   - **论文** -> `entity/paper`
+   - **网页文章** -> `entity/article`（类似 paper 实体页，包含一句话总结、内容概要、关键论点、涉及概念等）
 2. **概念页**：该来源涉及哪些概念？
    - 哪些概念页已存在？→ 更新
    - 哪些概念页需要新建？→ 创建
@@ -95,7 +115,9 @@ Wiki Ingest Agent 分析来源内容，决定：
 
 ### 5.1 创建实体页
 
-对于论文类型，使用脚本生成骨架：
+#### 论文类型
+
+使用脚本生成骨架：
 
 ```bash
 cd "$SKILLS_REPO_PATH"
@@ -108,7 +130,7 @@ python scripts/generate_page.py \
   --vault "$OBSIDIAN_VAULT_PATH"
 ```
 
-然后 Wiki Ingest Agent 读取生成的骨架，填充详细分析内容：
+然后你读取生成的骨架，填充详细分析内容：
 - 一句话总结
 - 摘要翻译（英文+中文）
 - 研究问题与动机
@@ -119,16 +141,30 @@ python scripts/generate_page.py \
 
 **图片引用**：使用 `![[_sources/papers/{ID}/images/fig1.png|800]]` 格式。
 
-### 5.1.1 图片解释（简洁版，第一性原理）
+#### 网页文章类型
 
-- 每篇论文解释 `2-4` 张关键图（优先：方法总览图、主结果图）。
-- 每张图只回答 4 件事：
-  - 这图要解决什么问题？
-  - 图里最关键的 1-2 个元素是什么？
-  - 结论一句话是什么？
-  - 这结论对论文主张有什么作用？
-- 禁止长篇复述图中细节；用通俗话，一针见血。
-- 看不清就写“待确认点”，不要脑补。
+使用脚本生成骨架：
+
+```bash
+cd "$SKILLS_REPO_PATH"
+python scripts/generate_page.py \
+  --type entity/article \
+  --title "{ARTICLE_TITLE}" \
+  --url "{URL}" \
+  --author "{AUTHOR}" \
+  --platform "{PLATFORM}" \
+  --domain "{DOMAIN}" \
+  --vault "$OBSIDIAN_VAULT_PATH"
+```
+
+然后你读取原始文章（特别是 `_sources/articles/{title}/images/` 中的图片）后填充：
+- 一句话总结
+- 内容概要（文章的完整结构和核心论述）
+- 关键论点与数据（包含具体公式、实验数据、关键图表引用）
+- 涉及的概念与论文（`[[wikilinks]]` 串联）
+- 评价
+
+**图片引用**：使用 `![[_sources/articles/{title}/images/fig1.jpg|800]]` 格式。
 
 ### 5.2 创建/更新概念页
 
@@ -146,7 +182,7 @@ python scripts/generate_page.py \
   --vault "$OBSIDIAN_VAULT_PATH"
 ```
 
-然后 Wiki Ingest Agent 填充内容。
+然后你填充内容。
 
 ### 5.3 创建对比页（可选）
 
@@ -181,6 +217,9 @@ python scripts/link_keywords.py \
   --output "{FILE_PATH}"
 ```
 
+关键词链接仅用于**正文区**，不得改写 frontmatter（如 `title/aliases/domains/tags/source_path`）。
+若发现 frontmatter 出现 `[[wikilink]]` 污染，先修复脚本或清洗元数据，再继续摄入流程。
+
 ## 步骤7：更新 index.md 和 log.md
 
 ```bash
@@ -208,13 +247,9 @@ python scripts/append_log.py \
 1. **读取 Schema 优先**：每次操作前必须读取 `_schema/WIKI.md`
 2. **检查现有页面**：创建前先搜索是否已存在
 3. **10-15 页面**：每次摄入目标触达 10-15 个页面
-4. **图文并茂**：论文实体页必须引用提取的图片
-5. **图解短而硬**：图片解释按“问题-关键元素-一句话结论-作用”四步写
-6. **混合语言**：正文中文，技术术语保留英文
-7. **wikilinks**：所有提到的概念和实体都要使用 `[[wikilink]]`
-8. **不覆盖用户内容**：`%% user %%` 标记的区域不修改
-9. **保持 frontmatter 完整**：所有字符串值用双引号
-10. **更新 updated 字段**：修改页面时更新 frontmatter 中的 `updated` 日期
-
-
-
+4. **图文并茂**：论文实体页引用 `![[_sources/papers/{ID}/images/fig1.png|800]]`；网页文章的 wiki 页面可引用 `![[_sources/articles/{title}/images/fig1.jpg|800]]`。图文类文章必须先读取图片再撰写 wiki 内容
+5. **混合语言**：正文中文，技术术语保留英文
+6. **wikilinks**：所有提到的概念和实体都要使用 `[[wikilink]]`
+7. **不覆盖用户内容**：`%% user %%` 标记的区域不修改
+8. **保持 frontmatter 完整**：所有字符串值用双引号
+9. **更新 updated 字段**：修改页面时更新 frontmatter 中的 `updated` 日期

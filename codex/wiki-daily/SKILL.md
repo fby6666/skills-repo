@@ -1,4 +1,4 @@
-﻿---
+---
 name: wiki-daily
 description: 每日论文推荐 — 搜索论文并自动摄入 Top 3 到 Wiki
 ---
@@ -150,6 +150,8 @@ python scripts/link_keywords.py \
   --input "$OBSIDIAN_VAULT_PATH/wiki/daily/{DATE}.md" \
   --output "$OBSIDIAN_VAULT_PATH/wiki/daily/{DATE}.md"
 ```
+
+关键词链接仅作用于正文内容，不允许改写 frontmatter 字段（尤其是 `tags/title/aliases/domains`）。
 
 ## 步骤8：更新 index 和 log
 

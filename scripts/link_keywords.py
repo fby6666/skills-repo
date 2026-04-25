@@ -36,27 +36,37 @@ def parse_markdown_lines(content: str) -> List[Tuple[str, str, str, bool]]:
     Returns:
         行列表：(原始行, 行类型, 行内容, 是否在frontmatter中)
     """
+    # Handle UTF-8 BOM at file start; otherwise first frontmatter delimiter
+    # can appear as "\ufeff---" and fail detection.
+    if content.startswith('\ufeff'):
+        content = content.lstrip('\ufeff')
+
     lines = []
     in_code_block = False
     code_fence_char = None
     in_frontmatter = False
     frontmatter_count = 0
+    saw_any_line = False
 
     for line in content.split('\n'):
-        # 检查 frontmatter 开始/结束
+        # Detect frontmatter only at the file start.
         if line.strip() == '---':
-            frontmatter_count += 1
-            if frontmatter_count == 1:
+            if not saw_any_line and frontmatter_count == 0:
+                frontmatter_count = 1
                 in_frontmatter = True
                 lines.append((line, 'frontmatter', line, True))
+                saw_any_line = True
                 continue
-            elif frontmatter_count == 2:
+            elif in_frontmatter and frontmatter_count == 1:
+                frontmatter_count = 2
                 in_frontmatter = False
                 lines.append((line, 'frontmatter', line, False))
+                saw_any_line = True
                 continue
 
         if in_frontmatter:
             lines.append((line, 'frontmatter', line, True))
+            saw_any_line = True
             continue
 
         # 检查代码块开始/结束
@@ -68,10 +78,12 @@ def parse_markdown_lines(content: str) -> List[Tuple[str, str, str, bool]]:
                 in_code_block = False
                 code_fence_char = None
             lines.append((line, 'code', line, False))
+            saw_any_line = True
             continue
 
         if in_code_block:
             lines.append((line, 'code', line, False))
+            saw_any_line = True
             continue
 
         # 解析行类型
@@ -107,6 +119,7 @@ def parse_markdown_lines(content: str) -> List[Tuple[str, str, str, bool]]:
             line_type = 'link'
 
         lines.append((line, line_type, processed_content, False))
+        saw_any_line = True
 
     return lines
 

@@ -1,4 +1,4 @@
-﻿---
+---
 name: wiki-query
 description: 基于 Wiki 知识库回答问题，讨论充分后按用户要求存入 Wiki
 ---
@@ -13,7 +13,7 @@ You are the Wiki Query Agent for a personal LLM Wiki knowledge base.
 
 # 触发
 
-`/wiki-query <question>` 或用户自然语言提问时判断应该查询 Wiki。
+`/wiki-query <question>` 或用户自然语言提问时你判断应该查询 Wiki。
 
 # 环境变量
 
@@ -111,5 +111,3 @@ python scripts/append_log.py \
 3. **先讨论后存档**：不自动写入 Wiki，等用户明确要求（"整理一下"、"写进 Wiki"、"存一下"等）再存档
 4. **知识复利**：存档时确保内容包含讨论中的完整要点，而非仅第一轮回答
 5. **诚实标注缺口**：Wiki 中没有的内容要明确标注
-
-
