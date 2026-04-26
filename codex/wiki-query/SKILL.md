@@ -111,3 +111,18 @@ python scripts/append_log.py \
 3. **先讨论后存档**：不自动写入 Wiki，等用户明确要求（"整理一下"、"写进 Wiki"、"存一下"等）再存档
 4. **知识复利**：存档时确保内容包含讨论中的完整要点，而非仅第一轮回答
 5. **诚实标注缺口**：Wiki 中没有的内容要明确标注
+
+## Paper Reading Checklist Rule (2026-04-26)
+
+When users ask to understand a paper (motivation / solved vs unsolved / method logic), use the checklist in:
+`$OBSIDIAN_VAULT_PATH/_schema/templates/paper-reading-checklist.md`
+
+Default answer structure:
+1) Motivation
+2) Problem definition
+3) Method mechanism
+4) Solved problems
+5) Unsolved problems
+6) Practical takeaway
+
+If user asks to save, create/update a `wiki/questions/` page using this structure and cite related wiki pages.
